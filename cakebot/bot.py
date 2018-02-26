@@ -1,7 +1,8 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 # Copyright 2011, 2013 OpenStack Foundation
 # Copyright 2012 Hewlett-Packard Development Company, L.P.
+# Copyright 2018 Matt Smith (matthew.smith491@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +19,14 @@
 import argparse
 import collections
 import daemon
+import io
 import irc.bot
 import json
 import logging.config
 import os
 import time
 import ssl
-
-import ptgbot.db
+import sys
 
 try:
     import daemon.pidlockfile as pid_file_module
@@ -39,13 +40,13 @@ except ImportError:
 # ^ This is why pep8 is a bad idea.
 irc.client.ServerConnection.buffer_class.errors = 'replace'
 ANTI_FLOOD_SLEEP = 2
-DOC_URL = 'https://git.openstack.org/cgit/openstack/ptgbot/tree/README.rst'
+DOC_URL = 'https://github.com/mattsmithdatera/cakebot/blob/master/README.rst'
 
 
-class PTGBot(irc.bot.SingleServerIRCBot):
-    log = logging.getLogger("ptgbot.bot")
+class CakeBot(irc.bot.SingleServerIRCBot):
+    log = logging.getLogger("cakebot.bot")
 
-    def __init__(self, nickname, password, server, port, channel, db):
+    def __init__(self, nickname, password, server, port, channel):
         if port == 6697:
             factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
             irc.bot.SingleServerIRCBot.__init__(self,
@@ -60,7 +61,6 @@ class PTGBot(irc.bot.SingleServerIRCBot):
         self.password = password
         self.channel = channel
         self.identify_msg_cap = False
-        self.data = db
 
     def on_nicknameinuse(self, c, e):
         self.log.debug("Nickname in use, releasing")
@@ -90,15 +90,11 @@ class PTGBot(irc.bot.SingleServerIRCBot):
             self.identify_msg_cap = True
 
     def usage(self, channel):
-        self.send(channel, "Format is '#TRACK COMMAND [PARAMETERS]'")
+        self.send(channel, "Format is '#cakebot COMMAND [PARAMETERS]'")
         self.send(channel, "See doc at: " + DOC_URL)
 
-    def send_track_list(self, channel):
-        tracks = self.data.list_tracks()
-        if tracks:
-            self.send(channel, "Active tracks: %s" % str.join(' ', tracks))
-        else:
-            self.send(channel, "There are no active tracks defined yet")
+    def send_test_list(self, channel):
+        self.send(channel, "CakeBot Test Send")
 
     def on_pubmsg(self, c, e):
         if not self.identify_msg_cap:
@@ -110,7 +106,7 @@ class PTGBot(irc.bot.SingleServerIRCBot):
         chan = e.target
 
         if msg.startswith('#'):
-            if (self.data.is_voice_required() and not
+            if (False and not
                     (self.channels[chan].is_voiced(nick) or
                      self.channels[chan].is_oper(nick))):
                 self.send(chan, "%s: Need voice to issue commands" % (nick,))
@@ -124,37 +120,39 @@ class PTGBot(irc.bot.SingleServerIRCBot):
                 return
 
             track = words[0][1:].lower()
-            if not self.data.is_track_valid(track):
-                self.send(chan, "%s: unknown track '%s'" % (nick, track))
-                self.send_track_list(chan)
-                return
+            # if not self.data.is_track_valid(track):
+            #     self.send(chan, "%s: unknown track '%s'" % (nick, track))
+            #     self.send_track_list(chan)
+            #     return
 
-            adverb = words[1].lower()
-            params = str.join(' ', words[2:])
-            if adverb in ['now', 'next', 'location']:
-                if not self.data.get_track_room(track):
-                    self.send(chan, "%s: track '%s' is not scheduled today" %
-                              (nick, track))
-                    return
-            if adverb == 'now':
-                self.data.add_now(track, params)
-            elif adverb == 'next':
-                self.data.add_next(track, params)
-            elif adverb == 'clean':
-                self.data.clean_tracks([track])
-            elif adverb == 'color':
-                self.data.add_color(track, params)
-            elif adverb == 'location':
-                self.data.add_location(track, params)
-            elif adverb == 'book':
-                room, timeslot = params.split('-')
-                if self.data.is_slot_valid_and_empty(room, timeslot):
-                    self.data.book(track, room, timeslot)
-                else:
-                    self.send(chan, "%s: invalid slot reference '%s'" %
-                              (nick, params))
+            # adverb = words[1].lower()
+            # params = str.join(' ', words[2:])
+            # if adverb in ['now', 'next', 'location']:
+            #     if not self.data.get_track_room(track):
+            #         self.send(chan, "%s: track '%s' is not scheduled today" %
+            #                   (nick, track))
+            #         return
+            # if adverb == 'now':
+            #     self.data.add_now(track, params)
+            # elif adverb == 'next':
+            #     self.data.add_next(track, params)
+            # elif adverb == 'clean':
+            #     self.data.clean_tracks([track])
+            # elif adverb == 'color':
+            #     self.data.add_color(track, params)
+            # elif adverb == 'location':
+            #     self.data.add_location(track, params)
+            # elif adverb == 'book':
+            #     room, timeslot = params.split('-')
+            #     if self.data.is_slot_valid_and_empty(room, timeslot):
+            #         self.data.book(track, room, timeslot)
+            #     else:
+            #         self.send(chan, "%s: invalid slot reference '%s'" %
+            #                   (nick, params))
+            if track == "test":
+                self.send_test_list(chan)
             else:
-                self.send(chan, "%s: unknown directive '%s'" % (nick, adverb))
+                self.send(chan, "%s: unknown directive '%s'" % (nick, track))
                 self.usage(chan)
                 return
 
@@ -164,25 +162,28 @@ class PTGBot(irc.bot.SingleServerIRCBot):
                 return
             words = msg.split()
             command = words[0][1:].lower()
-            if command == 'reload':
-                self.data.reload()
-            elif command == 'unbook':
-                params = str.join(' ', words[1:])
-                room, timeslot = params.split('-')
-                self.data.unbook(room, timeslot)
-            elif command == 'newday':
-                self.data.new_day_cleanup()
-            elif command == 'requirevoice':
-                self.data.require_voice()
-            elif command == 'alloweveryone':
-                self.data.allow_everyone()
-            elif command == 'list':
-                self.send_track_list(chan)
-            elif command in ('clean', 'add', 'del'):
-                if len(words) < 2:
-                    self.send(chan, "this command takes one or more arguments")
-                    return
-                getattr(self.data, command + '_tracks')(words[1:])
+            # if command == 'reload':
+            #     self.data.reload()
+            # elif command == 'unbook':
+            #     params = str.join(' ', words[1:])
+            #     room, timeslot = params.split('-')
+            #     self.data.unbook(room, timeslot)
+            # elif command == 'newday':
+            #     self.data.new_day_cleanup()
+            # elif command == 'requirevoice':
+            #     self.data.require_voice()
+            # elif command == 'alloweveryone':
+            #     self.data.allow_everyone()
+            # elif command == 'list':
+            #     self.send_track_list(chan)
+            # elif command in ('clean', 'add', 'del'):
+            #     if len(words) < 2:
+            #         self.send(
+            #             chan, "this command takes one or more arguments")
+            #         return
+            #     getattr(self.data, command + '_tracks')(words[1:])
+            if command == 'dickbutt':
+                self.send_test_list(chan)
             else:
                 self.send(chan, "%s: unknown command '%s'" % (nick, command))
                 return
@@ -193,26 +194,26 @@ class PTGBot(irc.bot.SingleServerIRCBot):
 
 
 def start(configpath):
-    with open(configpath, 'r') as fp:
+
+    with io.open(configpath, 'r') as fp:
         config = json.load(fp, object_pairs_hook=collections.OrderedDict)
 
     if 'log_config' in config:
         log_config = config['log_config']
         fp = os.path.expanduser(log_config)
         if not os.path.exists(fp):
-            raise Exception("Unable to read logging config file at %s" % fp)
+            raise EnvironmentError(
+                "Unable to read logging config file at %s" % fp)
         logging.config.fileConfig(fp)
     else:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG,
+                            handlers=[logging.StreamHandler(sys.stdout)])
 
-    db = ptgbot.db.PTGDataBase(config)
-
-    bot = PTGBot(config['irc_nick'],
-                 config.get('irc_pass', ''),
-                 config['irc_server'],
-                 config['irc_port'],
-                 config['irc_channel'],
-                 db)
+    bot = CakeBot(config['irc_nick'],
+                  config.get('irc_pass', ''),
+                  config['irc_server'],
+                  config['irc_port'],
+                  config['irc_channel'])
     bot.start()
 
 
@@ -225,7 +226,7 @@ def main():
 
     if not args.nodaemon:
         pid = pid_file_module.TimeoutPIDLockFile(
-            "/var/run/ptgbot/ptgbot.pid", 10)
+            "/var/run/cakebot/cakebot.pid", 10)
         with daemon.DaemonContext(pidfile=pid):
             start(args.configfile)
     start(args.configfile)

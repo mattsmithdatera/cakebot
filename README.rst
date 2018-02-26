@@ -1,8 +1,8 @@
-=================
-OpenStack PTG Bot
-=================
+==================
+OpenStack Cake Bot
+==================
 
-ptgbot is the bot that PTG track moderators use to surface what's
+cakebot is the bot that PTG track moderators use to surface what's
 currently happening at the event. Track moderators send messages to
 the bot, and from that information the bot builds a static webpage
 with several sections of information:
@@ -68,7 +68,7 @@ book
 ----
 
 The ``book`` command is used to book available slots in the additional rooms.
-Available time slots (at the bottom of the PTGbot page) display a slot code
+Available time slots (at the bottom of the cakebot page) display a slot code
 you can use book the room. Example usage::
 
   #vitrage book Missouri-MonAM
@@ -104,7 +104,7 @@ location
 --------
 
 The room your track discussions happen in should be filled automatically
-by the PTGbot by looking up the schedule information. In case it's not right,
+by the cakebot by looking up the schedule information. In case it's not right,
 you can overwrite it using the ``location`` command. Example usage::
 
   #oslo location Level B, Ballroom A
@@ -153,7 +153,7 @@ Copy config.json.sample to config.json::
 Edit config.json contents, for example::
 
   {
-  "irc_nick": "ptgbot",
+  "irc_nick": "cakebot",
   "irc_server": "irc.freenode.net",
   "irc_port": 6667,
   "irc_channel": "#testptg",
@@ -162,7 +162,7 @@ Edit config.json contents, for example::
 
 In one terminal, run the bot::
 
-  tox -evenv -- ptgbot -d config.json
+  tox -evenv -- cakebot -d config.json
 
 Join that channel and give commands to the bot::
 
