@@ -113,8 +113,7 @@ class CakeBot(irc.bot.SingleServerIRCBot):
                 return
 
             words = msg.split()
-            if ((len(words) < 2) or
-               (len(words) == 2 and words[1].lower() != 'clean')):
+            if len(words) < 2:
                 self.send(chan, "%s: Incorrect number of arguments" % (nick,))
                 self.usage(chan)
                 return
