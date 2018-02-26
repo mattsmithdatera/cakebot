@@ -141,17 +141,17 @@ class CakeBot(irc.bot.SingleServerIRCBot):
         time.sleep(ANTI_FLOOD_SLEEP)
 
     def db(self, channel):
-        self.send(" ___")
-        self.send("/   \\")
-        self.send("|o o|")
-        self.send("| > |")
-        self.send("|__/|  /\\")
-        self.send("|   |_ ||")
-        self.send("|  |  \||")
-        self.send("|  J   )_)")
-        self.send(" \____/")
-        self.send("   |")
-        self.send("  ='")
+        self.send(channel, " ___")
+        self.send(channel, "/   \\")
+        self.send(channel, "|o o|")
+        self.send(channel, "| > |")
+        self.send(channel, "|__/|  /\\")
+        self.send(channel, "|   |_ ||")
+        self.send(channel, "|  |  \||")
+        self.send(channel, "|  J   )_)")
+        self.send(channel, " \____/")
+        self.send(channel, "   |")
+        self.send(channel, "  ='")
 
 
 def start(configpath):
