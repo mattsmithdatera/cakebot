@@ -90,7 +90,7 @@ class CakeBot(irc.bot.SingleServerIRCBot):
             self.identify_msg_cap = True
 
     def usage(self, channel):
-        self.send(channel, "Format is '#cakebot COMMAND [PARAMETERS]'")
+        self.send(channel, "Format is '#cake COMMAND'")
         self.send(channel, "See doc at: " + DOC_URL)
 
     def send_test_list(self, channel):
@@ -106,19 +106,19 @@ class CakeBot(irc.bot.SingleServerIRCBot):
         chan = e.target
 
         if msg.startswith('#'):
-            if (False and not
-                    (self.channels[chan].is_voiced(nick) or
-                     self.channels[chan].is_oper(nick))):
-                self.send(chan, "%s: Need voice to issue commands" % (nick,))
-                return
+            # if (False and not
+            #         (self.channels[chan].is_voiced(nick) or
+            #          self.channels[chan].is_oper(nick))):
+            #     self.send(chan, "%s: Need voice to issue commands" % (nick,))
+            #     return
 
-            words = msg.split()
-            if len(words) < 2:
+            words = map(lambda x: x.lower(), msg[1:].split())
+            if len(words) < 2 or words[0] != "cake":
                 self.send(chan, "%s: Incorrect number of arguments" % (nick,))
                 self.usage(chan)
                 return
 
-            track = words[0][1:].lower()
+            cmd = words[1]
             # if not self.data.is_track_valid(track):
             #     self.send(chan, "%s: unknown track '%s'" % (nick, track))
             #     self.send_track_list(chan)
@@ -148,19 +148,19 @@ class CakeBot(irc.bot.SingleServerIRCBot):
             #     else:
             #         self.send(chan, "%s: invalid slot reference '%s'" %
             #                   (nick, params))
-            if track == "test":
+            if cmd == "test":
                 self.send_test_list(chan)
             else:
-                self.send(chan, "%s: unknown directive '%s'" % (nick, track))
+                self.send(chan, "%s: unknown directive '%s'" % (nick, cmd))
                 self.usage(chan)
                 return
 
         if msg.startswith('~'):
+            words = map(lambda x: x.lower(), msg[1:].split())
             if not self.channels[chan].is_oper(nick):
                 self.send(chan, "%s: Need op for admin commands" % (nick,))
                 return
-            words = msg.split()
-            command = words[0][1:].lower()
+            cmd = words[1]
             # if command == 'reload':
             #     self.data.reload()
             # elif command == 'unbook':
@@ -181,10 +181,10 @@ class CakeBot(irc.bot.SingleServerIRCBot):
             #             chan, "this command takes one or more arguments")
             #         return
             #     getattr(self.data, command + '_tracks')(words[1:])
-            if command == 'dickbutt':
+            if cmd == 'dickbutt':
                 self.send_test_list(chan)
             else:
-                self.send(chan, "%s: unknown command '%s'" % (nick, command))
+                self.send(chan, "%s: unknown command '%s'" % (nick, cmd))
                 return
 
     def send(self, channel, msg):
