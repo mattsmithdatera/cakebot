@@ -106,48 +106,13 @@ class CakeBot(irc.bot.SingleServerIRCBot):
         chan = e.target
 
         if msg.startswith('#'):
-            # if (False and not
-            #         (self.channels[chan].is_voiced(nick) or
-            #          self.channels[chan].is_oper(nick))):
-            #     self.send(chan, "%s: Need voice to issue commands" % (nick,))
-            #     return
-
             words = map(lambda x: x.lower(), msg[1:].split())
-            if len(words) < 2 or words[0] != "cake":
+            if len(words) < 2 or words[0] not in ["cake", "cakebot"]:
                 self.send(chan, "%s: Incorrect number of arguments" % (nick,))
                 self.usage(chan)
                 return
 
             cmd = words[1]
-            # if not self.data.is_track_valid(track):
-            #     self.send(chan, "%s: unknown track '%s'" % (nick, track))
-            #     self.send_track_list(chan)
-            #     return
-
-            # adverb = words[1].lower()
-            # params = str.join(' ', words[2:])
-            # if adverb in ['now', 'next', 'location']:
-            #     if not self.data.get_track_room(track):
-            #         self.send(chan, "%s: track '%s' is not scheduled today" %
-            #                   (nick, track))
-            #         return
-            # if adverb == 'now':
-            #     self.data.add_now(track, params)
-            # elif adverb == 'next':
-            #     self.data.add_next(track, params)
-            # elif adverb == 'clean':
-            #     self.data.clean_tracks([track])
-            # elif adverb == 'color':
-            #     self.data.add_color(track, params)
-            # elif adverb == 'location':
-            #     self.data.add_location(track, params)
-            # elif adverb == 'book':
-            #     room, timeslot = params.split('-')
-            #     if self.data.is_slot_valid_and_empty(room, timeslot):
-            #         self.data.book(track, room, timeslot)
-            #     else:
-            #         self.send(chan, "%s: invalid slot reference '%s'" %
-            #                   (nick, params))
             if cmd == "test":
                 self.send_test_list(chan)
             else:
@@ -157,32 +122,16 @@ class CakeBot(irc.bot.SingleServerIRCBot):
 
         if msg.startswith('~'):
             words = map(lambda x: x.lower(), msg[1:].split())
+            if len(words) < 2 or words[0] not in ["cake", "cakebot"]:
+                self.send(chan, "%s: Incorrect number of arguments" % (nick,))
+                self.usage(chan)
+                return
             if not self.channels[chan].is_oper(nick):
                 self.send(chan, "%s: Need op for admin commands" % (nick,))
                 return
             cmd = words[1]
-            # if command == 'reload':
-            #     self.data.reload()
-            # elif command == 'unbook':
-            #     params = str.join(' ', words[1:])
-            #     room, timeslot = params.split('-')
-            #     self.data.unbook(room, timeslot)
-            # elif command == 'newday':
-            #     self.data.new_day_cleanup()
-            # elif command == 'requirevoice':
-            #     self.data.require_voice()
-            # elif command == 'alloweveryone':
-            #     self.data.allow_everyone()
-            # elif command == 'list':
-            #     self.send_track_list(chan)
-            # elif command in ('clean', 'add', 'del'):
-            #     if len(words) < 2:
-            #         self.send(
-            #             chan, "this command takes one or more arguments")
-            #         return
-            #     getattr(self.data, command + '_tracks')(words[1:])
-            if cmd == 'dickbutt':
-                self.send_test_list(chan)
+            if cmd == 'db':
+                self.db(chan)
             else:
                 self.send(chan, "%s: unknown command '%s'" % (nick, cmd))
                 return
@@ -190,6 +139,19 @@ class CakeBot(irc.bot.SingleServerIRCBot):
     def send(self, channel, msg):
         self.connection.privmsg(channel, msg)
         time.sleep(ANTI_FLOOD_SLEEP)
+
+    def db(self, channel):
+        self.send(" ___")
+        self.send("/   \\")
+        self.send("|o o|")
+        self.send("| > |")
+        self.send("|__/|  /\\")
+        self.send("|   |_ ||")
+        self.send("|  |  \||")
+        self.send("|  J   )_)")
+        self.send(" \____/")
+        self.send("   |")
+        self.send("  ='")
 
 
 def start(configpath):
