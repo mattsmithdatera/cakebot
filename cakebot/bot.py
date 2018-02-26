@@ -39,7 +39,7 @@ except ImportError:
 # irc-client-should-not-crash-on-failed
 # ^ This is why pep8 is a bad idea.
 irc.client.ServerConnection.buffer_class.errors = 'replace'
-ANTI_FLOOD_SLEEP = 2
+ANTI_FLOOD_SLEEP = 0.8
 DOC_URL = 'https://github.com/mattsmithdatera/cakebot/blob/master/README.rst'
 
 
@@ -137,7 +137,7 @@ class CakeBot(irc.bot.SingleServerIRCBot):
                 return
 
     def send(self, channel, msg):
-        self.connection.privmsg(channel, msg)
+        self.connection.pubmsg(channel, msg)
         time.sleep(ANTI_FLOOD_SLEEP)
 
     def db(self, channel):
