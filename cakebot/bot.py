@@ -137,7 +137,7 @@ class CakeBot(irc.bot.SingleServerIRCBot):
                 return
 
     def send(self, channel, msg):
-        self.connection.pubmsg(channel, msg)
+        self.connection.privmsg(channel, msg)
         time.sleep(ANTI_FLOOD_SLEEP)
 
     def db(self, channel):
